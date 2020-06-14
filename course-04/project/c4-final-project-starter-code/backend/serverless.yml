@@ -37,6 +37,9 @@ provider:
         - name: CreateTodoRequest
           contentType: application/json
           schema: ${file(models/create-todo-request.json)}
+        - name: UpdateTodoRequest
+          contentType: application/json
+          schema: ${file(models/update-todo-request.json)}
 
 functions:
 
@@ -117,6 +120,37 @@ functions:
         Action:
           - s3:DeleteObject
         Resource: "arn:aws:s3:::${self:provider.environment.TODOS_S3_BUCKET}/*"
+      - Effect: Allow # xray permissions (required)
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - "*"
+  UpdateTodo:
+    handler: src/lambda/http/updateTodo.handler
+    events:
+      - http:
+          method: patch
+          path: todos/{todoId}
+          #authorizer: Auth
+          cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update a todo item
+            description: Update a todo item
+            requestModels:
+              'application/json': UpdateTodoRequest
+    iamRoleStatementsName: ${self:provider.environment.APP_NAME}-update-todo-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
       - Effect: Allow # xray permissions (required)
         Action:
           - xray:PutTraceSegments

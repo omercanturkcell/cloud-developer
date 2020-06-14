@@ -1,9 +1,10 @@
 import * as AWS from "aws-sdk";
 const AWSXray = require('aws-xray-sdk');
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
-import { TodoItem } from "../interfaces/models";
+import {TodoItem, TodoUpdate} from "../interfaces/models";
 import { config } from "../common/config";
 import { createLogger } from "../utils/logger";
+import {UpdateTodoRequest} from "../interfaces/requests";
 
 const XAWS = AWSXray.captureAWS(AWS);
 const logger = createLogger('todoAccess');
@@ -89,6 +90,37 @@ export class TodoAccess {
 
             await this.docClient.delete(params).promise();
             return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    async updateTodo(todoId: string, userId: string, item: UpdateTodoRequest): Promise<TodoUpdate> {
+        try {
+            logger.info(`Updating todo with id: ${todoId}`);
+
+            const params: DocumentClient.UpdateItemInput = {
+                TableName: this.todosTable,
+                Key: {
+                    "userId": userId,
+                    "todoId": todoId
+                },
+                UpdateExpression: "set #a = :a, #b = :b, #c = :c",
+                ExpressionAttributeNames: {
+                    '#a': 'name',
+                    '#b': 'dueDate',
+                    '#c': 'done'
+                },
+                ExpressionAttributeValues: {
+                    ":a": item.name,
+                    ":b": item.dueDate,
+                    ":c": item.done
+                },
+                ReturnValues: "UPDATED_NEW"
+            };
+
+            const updatedItem = await this.docClient.update(params).promise();
+            return Promise.resolve(updatedItem.Attributes as TodoUpdate);
         } catch (error) {
             return Promise.reject(error);
         }

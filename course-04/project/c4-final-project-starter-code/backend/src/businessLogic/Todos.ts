@@ -1,6 +1,6 @@
 import * as uuid from "uuid";
-import {CreateTodoRequest} from "../interfaces/requests";
-import {TodoItem} from "../interfaces/models";
+import {CreateTodoRequest, UpdateTodoRequest} from "../interfaces/requests";
+import {TodoItem, TodoUpdate} from "../interfaces/models";
 import {TodoAccess} from "../dataLayer/todoAccess";
 import {APIGatewayProxyEvent} from "aws-lambda";
 import {AuthHelper} from "../utils/authHelper";
@@ -36,4 +36,9 @@ export const getTodo = async (todoId: string, event: APIGatewayProxyEvent): Prom
 export const deleteTodo = async (todoId: string, event: APIGatewayProxyEvent): Promise<void> => {
     const userId = AuthHelper.getUserId(event);
     return await todoAccess.deleteTodo(todoId, userId);
+};
+
+export const updateTodo = async (todoId: string, request: UpdateTodoRequest, event: APIGatewayProxyEvent): Promise<TodoUpdate> => {
+    const userId = AuthHelper.getUserId(event);
+    return await todoAccess.updateTodo(todoId, userId, request);
 };
