@@ -8,7 +8,7 @@ import {cors} from "middy/middlewares";
 
 import {createLogger} from '../../utils/logger';
 
-import {deleteTodo, getTodo} from '../../businessLogic/todos';
+import {deleteS3BucketObject, deleteTodo, getTodo} from '../../businessLogic/todos';
 
 const logger = createLogger('deleteTodo');
 
@@ -31,6 +31,7 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
         }
 
         await deleteTodo(todoId, event);
+        await deleteS3BucketObject(todoId);
 
         return {
             statusCode: 200,

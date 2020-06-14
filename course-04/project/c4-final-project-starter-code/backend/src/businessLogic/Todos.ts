@@ -4,9 +4,10 @@ import {TodoItem, TodoUpdate} from "../interfaces/models";
 import {TodoAccess} from "../dataLayer/todoAccess";
 import {APIGatewayProxyEvent} from "aws-lambda";
 import {AuthHelper} from "../utils/authHelper";
+import {S3Helper} from "../utils/s3Helper";
 
 const todoAccess = new TodoAccess();
-
+const s3Helper = new S3Helper();
 
 export const createTodo = async (request: CreateTodoRequest, event: APIGatewayProxyEvent): Promise<TodoItem> => {
     const todoId = uuid.v4();
@@ -42,3 +43,7 @@ export const updateTodo = async (todoId: string, request: UpdateTodoRequest, eve
     const userId = AuthHelper.getUserId(event);
     return await todoAccess.updateTodo(todoId, userId, request);
 };
+
+export const getUploadUrl = (todoId: string) => s3Helper.getUploadUrl(todoId);
+
+export const deleteS3BucketObject = (todoId: string) => s3Helper.deleteObject(todoId);
