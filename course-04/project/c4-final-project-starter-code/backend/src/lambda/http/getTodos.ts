@@ -1,13 +1,13 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
+import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
 
 import * as middy from "middy";
-import { cors } from "middy/middlewares";
+import {cors} from "middy/middlewares";
 
-import { getAllTodosByUser } from '../../businessLogic/todos';
+import {getAllTodosByUser} from '../../businessLogic/todos';
 
-import { createLogger } from '../../utils/logger'
+import {createLogger} from '../../utils/logger'
 
 const logger = createLogger('getTodos')
 

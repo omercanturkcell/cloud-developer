@@ -77,7 +77,7 @@ functions:
       - http:
           method: post
           path: todos
-     #     authorizer: Auth
+          #     authorizer: Auth
           cors: true
           reqValidatorName: RequestBodyValidator
           documentation:
