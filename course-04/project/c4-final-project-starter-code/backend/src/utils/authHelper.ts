@@ -1,10 +1,10 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
-import { verify, decode } from 'jsonwebtoken';
-import { Jwt, JwtPayload } from "../interfaces/auth";
+import {APIGatewayProxyEvent} from "aws-lambda";
+import {decode, verify} from 'jsonwebtoken';
+import {Jwt, JwtPayload} from "../interfaces/auth";
 import * as jwksClient from "jwks-rsa";
-import { config } from '../common/config';
+import {config} from '../common/config';
 
-const client = jwksClient({ jwksUri: config.auth0JWKSUrl });
+const client = jwksClient({jwksUri: config.auth0JWKSUrl});
 
 export class AuthHelper {
 
@@ -24,8 +24,7 @@ export class AuthHelper {
 
         if (typeof param === "string") {
             return this.parseJWTToken(param);
-        }
-        else {
+        } else {
             const authHeader = param.headers.Authorization;
             if (!authHeader)
                 throw new Error("No authorization header provided to parse a JWT token");
@@ -44,7 +43,7 @@ export class AuthHelper {
         return verify(
             token,
             secretOrPublicKey,
-            { algorithms: ['RS256'] }
+            {algorithms: ['RS256']}
         ) as JwtPayload;
     }
 

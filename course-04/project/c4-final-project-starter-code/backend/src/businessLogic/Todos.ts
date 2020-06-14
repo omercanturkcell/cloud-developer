@@ -22,3 +22,8 @@ export const createTodo = async (request: CreateTodoRequest, event: APIGatewayPr
         attachmentUrl: ""
     });
 };
+
+export const getAllTodosByUser = async (event: APIGatewayProxyEvent): Promise<TodoItem[]> => {
+    const userId = AuthHelper.getUserId(event);
+    return await todoAccess.getAllTodosByUser(userId);
+};

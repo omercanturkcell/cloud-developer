@@ -31,6 +31,24 @@ export class TodoAccess {
         }
     }
 
+    async getAllTodosByUser(userId: string): Promise<TodoItem[]> {
+        try {
+            logger.info(`Getting all todos with userId ${userId}`);
+
+            const params: DocumentClient.QueryInput = {
+                TableName: this.todosTable,
+                KeyConditionExpression: "userId = :userId",
+                ExpressionAttributeValues: {
+                    ':userId': userId
+                }
+            };
+
+            const result = await this.docClient.query(params).promise();
+            return Promise.resolve(result.Items as TodoItem[]);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
 }
 
 const createDynamoDBClient = () => {
