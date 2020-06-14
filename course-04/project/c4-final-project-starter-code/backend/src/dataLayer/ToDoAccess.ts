@@ -49,6 +49,50 @@ export class TodoAccess {
             return Promise.reject(error);
         }
     }
+
+    async getTodo(todoId: string, userId: string): Promise<TodoItem> {
+        try {
+            logger.info(`Getting todo with id ${todoId}`);
+
+            const params: DocumentClient.QueryInput = {
+                TableName: this.todosTable,
+                KeyConditionExpression: 'todoId = :todoId and userId = :userId',
+                ExpressionAttributeValues: {
+                    ':todoId': todoId,
+                    ':userId': userId
+                }
+            };
+
+            const result = await this.docClient.query(params).promise();
+
+            if (result.Items && result.Items.length) {
+                return Promise.resolve(result.Items[0] as TodoItem);
+            }
+
+            return Promise.resolve(undefined);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    async deleteTodo(todoId: string, userId: string): Promise<void> {
+        try {
+            logger.info(`Deleting todo with id: ${todoId}`);
+
+            const params: DocumentClient.DeleteItemInput = {
+                TableName: this.todosTable,
+                Key: {
+                    "userId": userId,
+                    "todoId": todoId
+                }
+            };
+
+            await this.docClient.delete(params).promise();
+            return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
 }
 
 const createDynamoDBClient = () => {

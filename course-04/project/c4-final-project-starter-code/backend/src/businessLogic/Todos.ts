@@ -27,3 +27,13 @@ export const getAllTodosByUser = async (event: APIGatewayProxyEvent): Promise<To
     const userId = AuthHelper.getUserId(event);
     return await todoAccess.getAllTodosByUser(userId);
 };
+
+export const getTodo = async (todoId: string, event: APIGatewayProxyEvent): Promise<TodoItem> => {
+    const userId = AuthHelper.getUserId(event);
+    return await todoAccess.getTodo(todoId, userId);
+};
+
+export const deleteTodo = async (todoId: string, event: APIGatewayProxyEvent): Promise<void> => {
+    const userId = AuthHelper.getUserId(event);
+    return await todoAccess.deleteTodo(todoId, userId);
+};
