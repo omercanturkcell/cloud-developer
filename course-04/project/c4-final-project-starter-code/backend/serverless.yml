@@ -26,7 +26,7 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     Auth0JWKSUrl: https://dev-ba5ouksr.us.auth0.com/.well-known/jwks.json
 
-  custom:
+custom:
     documentation:
       api:
         info:
@@ -40,9 +40,9 @@ provider:
         - name: UpdateTodoRequest
           contentType: application/json
           schema: ${file(models/update-todo-request.json)}
+    topicName: todoTopic-${self:provider.stage}
 
 functions:
-
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -186,8 +186,42 @@ functions:
           - xray:PutTelemetryRecords
         Resource:
           - "*"
+  TodoTopicHandler:
+    handler: src/lambda/sns/todoTopic.handler
+    events:
+      - sns:
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn:aws:sns
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - ${self:custom.topicName}
+          topicName: ${self:custom.topicName}
+    iamRoleStatementsName: ${self:provider.environment.APP_NAME}-todo-topic-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
+      - Effect: Allow # xray permissions (required)
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - "*"
 resources:
   Resources:
+    TodoTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: Todo bucket topic
+        TopicName: ${self:custom.topicName}
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
@@ -237,9 +271,13 @@ resources:
 
     TodoAttachmentsBucket:
       Type: AWS::S3::Bucket
-      #DependsOn: SNSTopicPolicy
+      DependsOn: SNSTopicPolicy
       Properties:
         BucketName: ${self:provider.environment.TODOS_S3_BUCKET}
+        NotificationConfiguration:
+          TopicConfigurations:
+            - Event: s3:ObjectCreated:Put
+              Topic: !Ref TodoTopic
         CorsConfiguration:
           CorsRules:
             - AllowedOrigins:
@@ -266,4 +304,22 @@ resources:
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.TODOS_S3_BUCKET}/*'
         Bucket: !Ref TodoAttachmentsBucket
+
+    SNSTopicPolicy:
+      Type: AWS::SNS::TopicPolicy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: "*"
+              Action: sns:Publish
+              Resource:
+                !Ref TodoTopic
+              Condition:
+                ArnLike:
+                  AWS:SourceArn: arn:aws:s3:::${self:provider.environment.TODOS_S3_BUCKET}
+        Topics:
+          - !Ref TodoTopic
 

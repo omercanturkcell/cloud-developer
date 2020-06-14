@@ -47,3 +47,12 @@ export const updateTodo = async (todoId: string, request: UpdateTodoRequest, eve
 export const getUploadUrl = (todoId: string) => s3Helper.getUploadUrl(todoId);
 
 export const deleteS3BucketObject = (todoId: string) => s3Helper.deleteObject(todoId);
+
+export const getTodoItem = async (todoId: string): Promise<TodoItem> => {
+    return await todoAccess.getTodoItem(todoId);
+};
+
+export const updateAttachmentUrl = async (todoId: string, userId: string, attachmentUrl: string): Promise<void> => {
+    return await todoAccess.updateAttachmentUrl(todoId, userId, attachmentUrl);
+};
+

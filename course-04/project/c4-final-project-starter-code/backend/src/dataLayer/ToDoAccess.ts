@@ -13,7 +13,8 @@ const logger = createLogger('todoAccess');
 export class TodoAccess {
     constructor(
         private readonly docClient: DocumentClient = createDynamoDBClient(),
-        private readonly todosTable = config.todosTableName) {
+        private readonly todosTable = config.todosTableName,
+        private readonly todosTableIndexName = config.todosTableIndexName) {
     }
 
     async createTodo(todo: TodoItem): Promise<TodoItem> {
@@ -125,16 +126,61 @@ export class TodoAccess {
             return Promise.reject(error);
         }
     }
+
+    async getTodoItem(todoId: string): Promise<TodoItem> {
+        try {
+            logger.info(`Getting todo with id ${todoId}`);
+
+            const params: DocumentClient.QueryInput = {
+                IndexName: this.todosTableIndexName,
+                TableName: this.todosTable,
+                KeyConditionExpression: 'todoId = :todoId',
+                ExpressionAttributeValues: {
+                    ':todoId': todoId
+                }
+            };
+
+            const result = await this.docClient.query(params).promise();
+
+            if (result.Items && result.Items.length) {
+                return Promise.resolve(result.Items[0] as TodoItem);
+            }
+
+            return Promise.resolve(undefined);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    async updateAttachmentUrl(todoId: string, userId: string, attachmentUrl: string): Promise<void> {
+        try {
+            logger.info(`Updating attachment url of the todo: ${todoId}`);
+
+            const params: DocumentClient.UpdateItemInput = {
+                TableName: this.todosTable,
+                Key: {
+                    "todoId": todoId,
+                    "userId": userId
+                },
+                UpdateExpression: "set #a = :a",
+                ExpressionAttributeNames: {
+                    '#a': 'attachmentUrl',
+                },
+                ExpressionAttributeValues: {
+                    ":a": attachmentUrl
+                }
+            };
+
+            await this.docClient.update(params).promise();
+            return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    };
 }
 
 const createDynamoDBClient = () => {
-    if (config.isOffline) {
-        logger.info("Creating a local DynamoDB instance");
-        return new XAWS.DynamoDB.DocumentClient({
-            region: "localhost",
-            endpoint: "http://localhost:8000"
-        });
-    }
-
     return new XAWS.DynamoDB.DocumentClient();
 };
+
+
