@@ -8,7 +8,6 @@ const client = jwksClient({jwksUri: config.auth0JWKSUrl});
 
 export class AuthHelper {
 
-    static getUserId(jwtToken: string): string;
     static getUserId(event: APIGatewayProxyEvent): string;
     static getUserId(param: string | APIGatewayProxyEvent): string {
         const token = this.getJWTToken(param);
@@ -16,7 +15,6 @@ export class AuthHelper {
     }
 
     static getJWTToken(header: string): string;
-    static getJWTToken(event: APIGatewayProxyEvent): string;
     static getJWTToken(param: string | APIGatewayProxyEvent): string;
     static getJWTToken(param: string | APIGatewayProxyEvent): string {
         if (!param)

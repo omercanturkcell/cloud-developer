@@ -52,7 +52,7 @@ functions:
       - http:
           method: get
           path: todos
-          #authorizer: Auth
+          authorizer: Auth
           cors: true
     iamRoleStatementsName: ${self:provider.environment.APP_NAME}-get-todo-role-${self:provider.stage}
     iamRoleStatements:
@@ -77,7 +77,7 @@ functions:
       - http:
           method: post
           path: todos
-          #     authorizer: Auth
+          authorizer: Auth
           cors: true
           reqValidatorName: RequestBodyValidator
           documentation:
@@ -103,7 +103,7 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
-          #authorizer: Auth
+          authorizer: Auth
           cors: true
     iamRoleStatementsName: ${self:provider.environment.APP_NAME}-delete-todo-role-${self:provider.stage}
     iamRoleStatements:
@@ -132,7 +132,7 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
-          #authorizer: Auth
+          authorizer: Auth
           cors: true
           reqValidatorName: RequestBodyValidator
           documentation:
@@ -163,7 +163,7 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
-          #authorizer: Auth
+          authorizer: Auth
           cors: true
     iamRoleStatementsName: ${self:provider.environment.APP_NAME}-s3-todo-upload-role-${self:provider.stage}
     iamRoleStatements:
